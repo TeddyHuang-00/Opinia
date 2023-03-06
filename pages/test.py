@@ -76,6 +76,17 @@ if "classlist" not in st.session_state:
         ]
 
 
+if "grade" not in st.session_state:
+    with st.form("选择培养方案"):
+        grade = st.selectbox("您目前适用的培养方案年级为：", range(2019, 2023)) or 2019
+        if st.form_submit_button("确认"):
+            st.session_state["grade"] = grade
+            available_class = {c.name for c in load_data(grade)}
+            st.session_state["classlist"] = [
+                c for c in st.session_state["classlist"] if c in available_class
+            ]
+            st.experimental_rerun()
+
 KEY_NEUTRAL = "不好判断"
 VOTE, SUGGEST = st.tabs(["投票", "建议"])
 with VOTE:
