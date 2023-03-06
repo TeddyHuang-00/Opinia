@@ -44,7 +44,7 @@ with COMP:
                 st.code(data)
         with cols[1]:
             with st.expander("删除"):
-                if st.button("确认删除", type="primary"):
+                if st.button("确认删除", type="primary", key=f + "del"):
                     os.remove(os.path.join("data", f))
                     st.experimental_rerun()
 
@@ -56,7 +56,7 @@ with SUGG:
                 st.code(data)
         with cols[1]:
             with st.expander("删除"):
-                if st.button("确认删除", type="primary"):
+                if st.button("确认删除", type="primary", key=f + "del"):
                     os.remove(os.path.join("data", f))
                     st.experimental_rerun()
 
