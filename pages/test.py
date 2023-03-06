@@ -46,8 +46,9 @@ if st.secrets["interviewee"]["require_auth"] and "login" not in st.session_state
                     data={"uid": uid, "password": passwd},
                 )
                 if response.status_code == 200 and response.json()["success"]:
-                    st.session_state["login"] = True
                     st.session_state["token"] = response.json()["data"]["jwt"]
+                    st.session_state["uuid"] = get_uuid(uid)
+                    st.session_state["login"] = True
                     st.experimental_rerun()
             else:
                 st.error("账户或密码错误")
