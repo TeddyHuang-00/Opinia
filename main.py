@@ -128,6 +128,9 @@ with VOTE:
         useful = st.radio("哪个课程更有用？", options, horizontal=True, index=1)
         relatable = st.radio("哪个课程与本专业更相关？", options, horizontal=True, index=1)
         if st.form_submit_button("确认，转到下一组"):
+            print(
+                f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
+            )
             st.session_state["comparison"].append(
                 f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
             )
