@@ -125,14 +125,16 @@ with VOTE:
     )
     with st.form(f"{course_A} - {course_B}"):
         options: list[str] = [course_A, KEY_NEUTRAL, course_B]
-        useful = st.radio("哪个课程更有用？", options, horizontal=True, index=1)
-        relatable = st.radio("哪个课程与本专业更相关？", options, horizontal=True, index=1)
+        useful = (
+            options.index(st.select_slider("哪个课程更有用？", options, value=KEY_NEUTRAL)) - 1
+        )
+        relatable = (
+            options.index(st.select_slider("哪个课程与本专业更相关？", options, value=KEY_NEUTRAL))
+            - 1
+        )
         if st.form_submit_button("确认，转到下一组"):
-            print(
-                f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
-            )
             st.session_state["comparison"].append(
-                f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
+                f"{course_A}\t{course_B}\t{useful}\t{relatable}\n"
             )
             update_comparison()
             # st.experimental_rerun()
