@@ -3,6 +3,7 @@ import os
 from collections import namedtuple
 from hashlib import sha256
 
+import numpy as np
 import requests
 import streamlit as st
 
@@ -32,9 +33,17 @@ if st.secrets["interviewee"]["require_auth"] and "login" not in st.session_state
             uuid = sha256((uuid + s).encode()).hexdigest()
         return uuid
 
-    with st.expander("为什么需要验证您的身份？"):
+    with st.expander("❓ 为什么需要验证您的身份？"):
         st.caption(
-            "为了保证受访者的隐私，我们会对您的身份信息进行单向加密；但是出于分析的需要，我们仍需要分辨不同同学提交的结果。为了防止混淆和被冒名顶替，我们需要您进行身份验证。我们承诺所有身份信息将不会泄漏，并且不会用于其他目的，请您放心填写剩余部分问卷。如您有任何顾虑，请直接联系黄楠（huang_nan_2019@pku.edu.cn）"
+            "为了保证受访者的隐私，我们会对您的身份信息进行单向加密；但是出于分析的需要，我们仍需要分辨不同同学提交的结果。为了防止混淆和被冒名顶替，我们需要您进行身份验证。另外，您的身份信息也将会一并用于获取已选修课表，方便您填写问卷。如您继续填写，则表明您接受如上所述对于您信息的使用。"
+        )
+    with st.expander("⚠️ 我的数据将如何处理？"):
+        st.caption(
+            "我们承诺您的:red[所有身份信息]不会被泄漏，并且:red[不会用于其他目的]，所用验证方式为树洞同级别一次性验证，不会在服务器上保留任何身份验证信息。经过验证后，您的身份信息将在关闭浏览器标签页时全部清除，我们只会永久保留您将要填写的问卷内容。"
+        )
+    with st.expander("🚫 我还是不信任你们怎么办？"):
+        st.caption(
+            "这个调查不是强制的，您可以：1) 查看本项目源代码；或者 2) 立刻停止受访并关闭本页。如您还有任何顾虑，请直接联系黄楠（huang_nan_2019@pku.edu.cn）"
         )
     with st.form("登陆"):
         uid = st.text_input("学号", help="IAAA账户")
@@ -66,4 +75,20 @@ if "classlist" not in st.session_state:
             c["kcmc"] for c in response.json()["data"]["score"]["cjxx"]
         ]
 
-st.write(st.session_state["classlist"])
+
+KEY_NEUTRAL = "不好判断"
+VOTE, SUGGEST = st.tabs(["投票", "建议"])
+with VOTE:
+    course_A, course_B = np.random.choice(
+        st.session_state["classlist"], 2, replace=False
+    )
+    with st.form(f"{course_A} - {course_B}"):
+        options = [course_A, KEY_NEUTRAL, course_B]
+        useful = st.radio("哪个课程更有用？", options, horizontal=True)
+        relatable = st.radio("哪个课程与本专业更相关？", options, horizontal=True)
+        if st.form_submit_button("确认，转到下一组"):
+            with open(f"data/{st.session_state['uuid']}.data", "a") as f:
+                f.write(
+                    f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
+                )
+            st.experimental_rerun()
