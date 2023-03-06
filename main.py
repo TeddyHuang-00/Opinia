@@ -1,7 +1,7 @@
 import json
 import os
 from collections import namedtuple
-from hashlib import sha256
+from hashlib import md5
 
 import numpy as np
 import requests
@@ -29,7 +29,7 @@ def update_comparison():
     """
     Update the comparison of the uuid
     """
-    with open(f"data/{st.session_state['uuid']}.tsv", "w") as f:
+    with open(f"data/{st.session_state['uuid']}.data", "w") as f:
         f.writelines(st.session_state["comparison"])
 
 
@@ -46,7 +46,7 @@ if "login" not in st.session_state:
     def get_uuid(addr: str):
         uuid = addr
         for s in sorted(st.secrets["safety"]["salt"]):
-            uuid = sha256((uuid + s).encode()).hexdigest()
+            uuid = md5((uuid + s).encode()).hexdigest()
         return uuid
 
     with st.expander("❓ 为什么需要验证您的身份？"):
@@ -104,10 +104,10 @@ if "grade" not in st.session_state:
     st.stop()
 
 if "comparison" not in st.session_state:
-    if not os.path.exists(f"data/{st.session_state['uuid']}.tsv"):
+    if not os.path.exists(f"data/{st.session_state['uuid']}.data"):
         st.session_state["comparison"] = []
     else:
-        with open(f"data/{st.session_state['uuid']}.tsv", "r") as f:
+        with open(f"data/{st.session_state['uuid']}.data", "r") as f:
             st.session_state["comparison"] = f.readlines()
 
 if "proposal" not in st.session_state:
@@ -123,7 +123,7 @@ with VOTE:
     course_A, course_B = np.random.choice(
         st.session_state["classlist"], 2, replace=False
     )
-    with st.form(f"{course_A} - {course_B}"):
+    with st.form(f"课程比较"):
         options: list[str] = [course_A, KEY_NEUTRAL, course_B]
         useful = (
             options.index(st.select_slider("哪个课程更有用？", options, value=KEY_NEUTRAL)) - 1
@@ -133,10 +133,8 @@ with VOTE:
             - 1
         )
         if st.form_submit_button("确认，转到下一组"):
-            st.session_state["comparison"].append(
-                f"{course_A}\t{course_B}\t{useful}\t{relatable}\n"
-            )
-            update_comparison()
+            with open(f"data/{st.session_state['uuid']}.data", "a+") as f:
+                f.write(f"{course_A}\t{course_B}\t{useful}\t{relatable}\n")
             # st.experimental_rerun()
 
 with SUGGEST:
