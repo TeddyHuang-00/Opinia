@@ -102,6 +102,10 @@ if "proposal" not in st.session_state:
         with open(f"data/{st.session_state['uuid']}.list", "r") as f:
             st.session_state["proposal"] = f.readlines()
 
+if f"{st.session_state['uuid']}.data" not in os.listdir("data"):
+    with open(f"data/{st.session_state['uuid']}.data", "w") as f:
+        f.write("A\tB\tuseful\trelatable\n")
+
 KEY_NEUTRAL = "不好判断"
 VOTE, SUGGEST = st.tabs(["投票", "建议"])
 with VOTE:

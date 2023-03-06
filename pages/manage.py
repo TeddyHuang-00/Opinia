@@ -27,9 +27,6 @@ if "admin" not in st.session_state:
     # Make sure the page is not run until authentication is complete
     st.stop()
 
-st.write(os.listdir("data"))
-st.write(os.listdir("../data"))
-
 file_names = os.listdir("data")
 comp_data = [
     (f, open(os.path.join("data", f)).read()) for f in file_names if f.endswith("data")
