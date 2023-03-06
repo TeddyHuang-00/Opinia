@@ -86,6 +86,7 @@ if "grade" not in st.session_state:
                 c for c in st.session_state["classlist"] if c in available_class
             ]
             st.experimental_rerun()
+    st.stop()
 
 KEY_NEUTRAL = "不好判断"
 VOTE, SUGGEST = st.tabs(["投票", "建议"])
