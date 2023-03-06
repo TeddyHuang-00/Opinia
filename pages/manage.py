@@ -37,11 +37,19 @@ sugg_data = [
 COMP, SUGG = st.tabs(["排序数据", "课程建议"])
 
 with COMP:
+    if st.button("生成下载链接", key="gen_comp_download_link"):
+        ziped_data = io.BytesIO()
+        with zipfile.ZipFile(ziped_data, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+            for f, data in comp_data:
+                zip_file.writestr(f, data, compress_type=zipfile.ZIP_DEFLATED)
+        st.download_button(
+            "下载排序数据", ziped_data.getvalue(), "comparisons.zip", "application/zip"
+        )
     for f, data in comp_data:
         cols = st.columns([5, 1])
         with cols[0]:
             with st.expander(f):
-                st.code(data)
+                st.text(data)
         with cols[1]:
             with st.expander("删除"):
                 if st.button("确认删除", type="primary", key=f + "del"):
@@ -49,11 +57,19 @@ with COMP:
                     st.experimental_rerun()
 
 with SUGG:
+    if st.button("生成下载链接", key="gen_sugg_download_link"):
+        ziped_data = io.BytesIO()
+        with zipfile.ZipFile(ziped_data, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+            for f, data in sugg_data:
+                zip_file.writestr(f, data, compress_type=zipfile.ZIP_DEFLATED)
+        st.download_button(
+            "下载建议", ziped_data.getvalue(), "suggestions.zip", "application/zip"
+        )
     for f, data in sugg_data:
         cols = st.columns([5, 1])
         with cols[0]:
             with st.expander(f):
-                st.code(data)
+                st.text(data)
         with cols[1]:
             with st.expander("删除"):
                 if st.button("确认删除", type="primary", key=f + "del"):
