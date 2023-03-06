@@ -124,15 +124,15 @@ with VOTE:
         st.session_state["classlist"], 2, replace=False
     )
     with st.form(f"{course_A} - {course_B}"):
-        options = [course_A, KEY_NEUTRAL, course_B]
-        useful = st.radio("哪个课程更有用？", options, horizontal=True)
-        relatable = st.radio("哪个课程与本专业更相关？", options, horizontal=True)
+        options: list[str] = [course_A, KEY_NEUTRAL, course_B]
+        useful = st.radio("哪个课程更有用？", options, horizontal=True, index=1)
+        relatable = st.radio("哪个课程与本专业更相关？", options, horizontal=True, index=1)
         if st.form_submit_button("确认，转到下一组"):
             st.session_state["comparison"].append(
                 f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
             )
             update_comparison()
-            st.experimental_rerun()
+            # st.experimental_rerun()
 
 with SUGGEST:
     with st.form("建议新课程"):
