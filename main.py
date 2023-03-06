@@ -1,4 +1,5 @@
 import json
+import os
 from collections import namedtuple
 from hashlib import sha256
 
@@ -24,11 +25,19 @@ def load_data(year: int = 2019):
     return data
 
 
-if st.secrets["interviewee"]["require_auth"] and "login" not in st.session_state:
+def update_proposal():
+    """
+    Update the proposal of the given uuid
+    """
+    with open(f"data/{st.session_state['uuid']}.list", "w") as f:
+        f.writelines(st.session_state["proposal"])
+
+
+if "login" not in st.session_state:
 
     def get_uuid(addr: str):
         uuid = addr
-        for s in sorted(st.secrets["interviewee"]["salt"]):
+        for s in sorted(st.secrets["safety"]["salt"]):
             uuid = sha256((uuid + s).encode()).hexdigest()
         return uuid
 
@@ -74,7 +83,6 @@ if "classlist" not in st.session_state:
             c["kcmc"] for c in response.json()["data"]["score"]["cjxx"]
         ]
 
-
 if "grade" not in st.session_state:
     with st.form("选择培养方案"):
         grade = st.selectbox("您目前适用的培养方案年级为：", range(2019, 2023)) or 2019
@@ -86,6 +94,13 @@ if "grade" not in st.session_state:
             ]
             st.experimental_rerun()
     st.stop()
+
+if "proposal" not in st.session_state:
+    if not os.path.exists(f"data/{st.session_state['uuid']}.list"):
+        st.session_state["proposal"] = []
+    else:
+        with open(f"data/{st.session_state['uuid']}.list", "r") as f:
+            st.session_state["proposal"] = f.readlines()
 
 KEY_NEUTRAL = "不好判断"
 VOTE, SUGGEST = st.tabs(["投票", "建议"])
@@ -103,3 +118,19 @@ with VOTE:
                     f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
                 )
             st.experimental_rerun()
+
+with SUGGEST:
+    with st.form("建议新课程"):
+        suggestion = st.text_input("您认为应当加入培养方案的课程名称：")
+        if st.form_submit_button("提交"):
+            st.session_state["proposal"].append(suggestion)
+            update_proposal()
+    for course in st.session_state["proposal"]:
+        cols = st.columns([5, 1])
+        with cols[0]:
+            st.write(course)
+        with cols[1]:
+            if st.button("删除"):
+                st.session_state["proposal"].remove(course)
+                update_proposal()
+                st.experimental_rerun()
