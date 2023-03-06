@@ -29,7 +29,7 @@ def update_comparison():
     """
     Update the comparison of the uuid
     """
-    with open(f"data/{st.session_state['uuid']}.data", "w") as f:
+    with open(f"data/{st.session_state['uuid']}.tsv", "w") as f:
         f.writelines(st.session_state["comparison"])
 
 
@@ -104,10 +104,10 @@ if "grade" not in st.session_state:
     st.stop()
 
 if "comparison" not in st.session_state:
-    if not os.path.exists(f"data/{st.session_state['uuid']}.data"):
+    if not os.path.exists(f"data/{st.session_state['uuid']}.tsv"):
         st.session_state["comparison"] = []
     else:
-        with open(f"data/{st.session_state['uuid']}.data", "r") as f:
+        with open(f"data/{st.session_state['uuid']}.tsv", "r") as f:
             st.session_state["comparison"] = f.readlines()
 
 if "proposal" not in st.session_state:

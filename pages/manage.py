@@ -29,7 +29,7 @@ if "admin" not in st.session_state:
 
 file_names = os.listdir("data")
 comp_data = [
-    (f, open(os.path.join("data", f)).read()) for f in file_names if f.endswith("data")
+    (f, open(os.path.join("data", f)).read()) for f in file_names if f.endswith("tsv")
 ]
 sugg_data = [
     (f, open(os.path.join("data", f)).read()) for f in file_names if f.endswith("list")
