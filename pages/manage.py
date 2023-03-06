@@ -27,20 +27,18 @@ if "admin" not in st.session_state:
     # Make sure the page is not run until authentication is complete
     st.stop()
 
+st.write(os.listdir("data"))
+st.write(os.listdir("../data"))
 
-def get_data():
-    files = os.listdir("data")
-    comp_data = [
-        (f, open(os.path.join("data", f)).read()) for f in files if f.endswith("data")
-    ]
-    sugg_data = [
-        (f, open(os.path.join("data", f)).read()) for f in files if f.endswith("list")
-    ]
-    return comp_data, sugg_data
-
-
+file_names = os.listdir("data")
+comp_data = [
+    (f, open(os.path.join("data", f)).read()) for f in file_names if f.endswith("data")
+]
+sugg_data = [
+    (f, open(os.path.join("data", f)).read()) for f in file_names if f.endswith("list")
+]
 COMP, SUGG = st.tabs(["排序数据", "课程建议"])
-comp_data, sugg_data = get_data()
+
 with COMP:
     for f, data in comp_data:
         cols = st.columns([5, 1])
@@ -52,3 +50,18 @@ with COMP:
                 if st.button("确认删除", type="primary"):
                     os.remove(os.path.join("data", f))
                     st.experimental_rerun()
+
+with SUGG:
+    for f, data in sugg_data:
+        cols = st.columns([5, 1])
+        with cols[0]:
+            with st.expander(f):
+                st.code(data)
+        with cols[1]:
+            with st.expander("删除"):
+                if st.button("确认删除", type="primary"):
+                    os.remove(os.path.join("data", f))
+                    st.experimental_rerun()
+
+if st.button("刷新数据"):
+    st.experimental_rerun()
