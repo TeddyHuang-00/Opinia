@@ -108,24 +108,28 @@ def update_user_info(uuid: str, grade: int, blacklist: list[str], whitelist: lis
         json.dump(data, f)
 
 
-if "user_info" not in st.session_state:
-    st.session_state["user_info"] = get_user_info(st.session_state["uuid"])
-    if "grade" not in st.session_state["user_info"]:
+if "grade" not in st.session_state:
+    user_info = get_user_info(st.session_state["uuid"])
+    if "grade" not in user_info:
         with st.form("基本信息"):
             grade = st.selectbox("您所用的培养方案", options=range(2019, 2023)) or 2019
             if st.form_submit_button("确认"):
-                st.session_state["user_info"]["grade"] = grade
+                st.session_state["grade"] = grade
                 update_user_info(st.session_state["uuid"], grade, [], [])
                 st.experimental_rerun()
         st.stop()
+    else:
+        st.session_state["grade"] = user_info["grade"]
+        st.session_state["blacklist"] = user_info["blacklist"]
+        st.session_state["whitelist"] = user_info["whitelist"]
 
 if "greylist" not in st.session_state:
     st.session_state["greylist"] = np.unique(
         [
             e.name
-            for e in load_data(st.session_state["user_info"]["grade"])
-            if e.name not in st.session_state["user_info"]["blacklist"]
-            and e.name not in st.session_state["user_info"]["whitelist"]
+            for e in load_data(st.session_state["grade"])
+            if e.name not in st.session_state["blacklist"]
+            and e.name not in st.session_state["whitelist"]
         ]
     ).tolist()
 
@@ -136,10 +140,7 @@ with VOTE:
         len(st.session_state["greylist"]) > 1
         and np.random.uniform()
         < len(st.session_state["greylist"])
-        / (
-            len(st.session_state["greylist"])
-            + len(st.session_state["user_info"]["whitelist"])
-        )
+        / (len(st.session_state["greylist"]) + len(st.session_state["whitelist"]))
         + 0.1
     ):
         # E-greedy sample
@@ -158,9 +159,9 @@ with VOTE:
             if st.form_submit_button("确认，转到下一组"):
                 for c in [course_A, course_B]:
                     if c in unavailable:
-                        st.session_state["user_info"]["blacklist"].append(c)
+                        st.session_state["blacklist"].append(c)
                     else:
-                        st.session_state["user_info"]["whitelist"].append(c)
+                        st.session_state["whitelist"].append(c)
                 if len(unavailable) == 0:
                     with open(f"data/{st.session_state['uuid']}.data", "a") as f:
                         f.write(
@@ -168,15 +169,15 @@ with VOTE:
                         )
                 update_user_info(
                     st.session_state["uuid"],
-                    st.session_state["user_info"]["grade"],
-                    st.session_state["user_info"]["blacklist"],
-                    st.session_state["user_info"]["whitelist"],
+                    st.session_state["grade"],
+                    st.session_state["blacklist"],
+                    st.session_state["whitelist"],
                 )
                 st.experimental_rerun()
 
     else:
         course_A, course_B = np.random.choice(
-            st.session_state["user_info"]["whitelist"], 2, replace=False
+            st.session_state["whitelist"], 2, replace=False
         )
         with st.form(f"{course_A} - {course_B}"):
             options = [course_A, KEY_NEUTRAL, course_B]
