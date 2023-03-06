@@ -127,8 +127,9 @@ with SUGGEST:
     with st.form("建议新课程"):
         suggestion = st.text_input("您认为应当加入培养方案的课程名称：")
         if st.form_submit_button("提交"):
-            st.session_state["proposal"].append(suggestion)
-            update_proposal()
+            if suggestion not in st.session_state["proposal"]:
+                st.session_state["proposal"].append(suggestion)
+                update_proposal()
     st.subheader("您建议的课程")
     for course in st.session_state["proposal"]:
         cols = st.columns([5, 1])
