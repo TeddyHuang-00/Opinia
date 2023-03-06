@@ -3,11 +3,17 @@ import smtplib
 from collections import namedtuple
 from email.mime.text import MIMEText
 from hashlib import sha256
+import os
 
 import numpy as np
 import streamlit as st
 
 ClassItem = namedtuple("ClassItem", ["id", "name"])
+
+st.set_page_config(
+    "议见 Opinia", layout="wide", page_icon="⚙️", initial_sidebar_state="collapsed"
+)
+st.title("💬 议见 | Opinia")
 
 
 @st.cache_data
@@ -87,3 +93,29 @@ if st.secrets["interviewee"]["require_auth"] and "login" not in st.session_state
     st.stop()
 
 st.caption(f"Your UUID: {st.session_state['uuid']}")
+
+
+def get_user_info(uuid: str) -> dict[str, str]:
+    if not os.path.exists(f"data/{uuid}.json"):
+        with open(f"data/{uuid}.json", "w") as f:
+            json.dump({}, f)
+        return {}
+    else:
+        return json.load(open(f"data/{uuid}.json"))
+
+
+def update_user_info(uuid: str, grade: str, blacklist: list[str], whitelist: list[str]):
+    data = {"blacklist": blacklist, "whitelist": whitelist, "grade": grade}
+    with open(f"data/{uuid}.json", "w") as f:
+        json.dump(data, f)
+
+
+st.session_state["user_info"] = get_user_info(st.session_state["uuid"])
+if "grade" not in st.session_state["user_info"]:
+    with st.form("基本信息"):
+        grade = st.selectbox("您所用的培养方案", options=map(str, range(2019, 2023))) or "2019"
+        if st.form_submit_button("确认"):
+            st.session_state["user_info"]["grade"] = grade
+            update_user_info(st.session_state["uuid"], grade, [], [])
+            st.experimental_rerun()
+    st.stop()
