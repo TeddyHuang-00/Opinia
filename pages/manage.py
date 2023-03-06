@@ -5,9 +5,7 @@ import zipfile
 import numpy as np
 import streamlit as st
 
-st.set_page_config(
-    "后台管理", layout="wide", page_icon="⚙️", initial_sidebar_state="collapsed"
-)
+st.set_page_config("后台管理", page_icon="⚙️", initial_sidebar_state="collapsed")
 st.title("⚙️后台管理")
 
 if "admin" not in st.session_state:

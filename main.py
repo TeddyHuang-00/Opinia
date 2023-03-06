@@ -10,9 +10,7 @@ import streamlit as st
 
 ClassItem = namedtuple("ClassItem", ["id", "name"])
 
-st.set_page_config(
-    "议见 Opinia", layout="wide", page_icon="⚙️", initial_sidebar_state="collapsed"
-)
+st.set_page_config("议见 Opinia", page_icon="⚙️", initial_sidebar_state="collapsed")
 st.title("💬 议见 | Opinia")
 
 
@@ -104,18 +102,89 @@ def get_user_info(uuid: str) -> dict[str, str]:
         return json.load(open(f"data/{uuid}.json"))
 
 
-def update_user_info(uuid: str, grade: str, blacklist: list[str], whitelist: list[str]):
+def update_user_info(uuid: str, grade: int, blacklist: list[str], whitelist: list[str]):
     data = {"blacklist": blacklist, "whitelist": whitelist, "grade": grade}
     with open(f"data/{uuid}.json", "w") as f:
         json.dump(data, f)
 
 
-st.session_state["user_info"] = get_user_info(st.session_state["uuid"])
-if "grade" not in st.session_state["user_info"]:
-    with st.form("基本信息"):
-        grade = st.selectbox("您所用的培养方案", options=map(str, range(2019, 2023))) or "2019"
-        if st.form_submit_button("确认"):
-            st.session_state["user_info"]["grade"] = grade
-            update_user_info(st.session_state["uuid"], grade, [], [])
-            st.experimental_rerun()
-    st.stop()
+if "user_info" not in st.session_state:
+    st.session_state["user_info"] = get_user_info(st.session_state["uuid"])
+    if "grade" not in st.session_state["user_info"]:
+        with st.form("基本信息"):
+            grade = st.selectbox("您所用的培养方案", options=range(2019, 2023)) or 2019
+            if st.form_submit_button("确认"):
+                st.session_state["user_info"]["grade"] = grade
+                update_user_info(st.session_state["uuid"], grade, [], [])
+                st.experimental_rerun()
+        st.stop()
+
+if "greylist" not in st.session_state:
+    st.session_state["greylist"] = np.unique(
+        [
+            e.name
+            for e in load_data(st.session_state["user_info"]["grade"])
+            if e.name not in st.session_state["user_info"]["blacklist"]
+            and e.name not in st.session_state["user_info"]["whitelist"]
+        ]
+    ).tolist()
+
+KEY_NEUTRAL = "不好判断"
+VOTE, SUGGEST = st.tabs(["投票", "建议"])
+with VOTE:
+    if (
+        len(st.session_state["greylist"]) > 1
+        and np.random.uniform()
+        < len(st.session_state["greylist"])
+        / (
+            len(st.session_state["greylist"])
+            + len(st.session_state["user_info"]["whitelist"])
+        )
+        + 0.1
+    ):
+        # E-greedy sample
+        course_A, course_B = np.random.choice(
+            st.session_state["greylist"], 2, replace=False
+        )
+        st.session_state["greylist"].remove(course_A)
+        st.session_state["greylist"].remove(course_B)
+        with st.form(f"{course_A} - {course_B}"):
+            unavailable = st.multiselect(
+                "如果您因不了解部分课程而无法评价，请选择课名并直接提交", options=[course_A, course_B]
+            )
+            options = [course_A, KEY_NEUTRAL, course_B]
+            useful = st.radio("哪个课程更有用？", options, horizontal=True)
+            relatable = st.radio("哪个课程与本专业更相关？", options, horizontal=True)
+            if st.form_submit_button("确认，转到下一组"):
+                for c in [course_A, course_B]:
+                    if c in unavailable:
+                        st.session_state["user_info"]["blacklist"].append(c)
+                    else:
+                        st.session_state["user_info"]["whitelist"].append(c)
+                if len(unavailable) == 0:
+                    with open(f"data/{st.session_state['uuid']}.data", "a") as f:
+                        f.write(
+                            f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
+                        )
+                update_user_info(
+                    st.session_state["uuid"],
+                    st.session_state["user_info"]["grade"],
+                    st.session_state["user_info"]["blacklist"],
+                    st.session_state["user_info"]["whitelist"],
+                )
+                st.experimental_rerun()
+
+    else:
+        course_A, course_B = np.random.choice(
+            st.session_state["user_info"]["whitelist"], 2, replace=False
+        )
+        with st.form(f"{course_A} - {course_B}"):
+            options = [course_A, KEY_NEUTRAL, course_B]
+            useful = st.radio("哪个课程更有用？", options, horizontal=True)
+            relatable = st.radio("哪个课程与本专业更相关？", options, horizontal=True)
+            if st.form_submit_button("确认，转到下一组"):
+                with open(f"data/{st.session_state['uuid']}.data", "a") as f:
+                    f.write(
+                        f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
+                    )
+                st.experimental_rerun()
