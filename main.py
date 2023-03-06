@@ -125,6 +125,7 @@ with SUGGEST:
         if st.form_submit_button("提交"):
             st.session_state["proposal"].append(suggestion)
             update_proposal()
+    st.subheader("您建议的课程")
     for course in st.session_state["proposal"]:
         cols = st.columns([5, 1])
         with cols[0]:
