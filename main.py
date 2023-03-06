@@ -115,6 +115,8 @@ if "grade" not in st.session_state:
             grade = st.selectbox("您所用的培养方案", options=range(2019, 2023)) or 2019
             if st.form_submit_button("确认"):
                 st.session_state["grade"] = grade
+                st.session_state["blacklist"] = []
+                st.session_state["whitelist"] = []
                 update_user_info(st.session_state["uuid"], grade, [], [])
                 st.experimental_rerun()
         st.stop()
