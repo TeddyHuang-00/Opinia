@@ -25,9 +25,17 @@ def load_data(year: int = 2019):
     return data
 
 
+def update_comparison():
+    """
+    Update the comparison of the uuid
+    """
+    with open(f"data/{st.session_state['uuid']}.data", "w") as f:
+        f.writelines(st.session_state["comparison"])
+
+
 def update_proposal():
     """
-    Update the proposal of the given uuid
+    Update the proposal of the uuid
     """
     with open(f"data/{st.session_state['uuid']}.list", "w") as f:
         f.writelines(st.session_state["proposal"])
@@ -95,16 +103,19 @@ if "grade" not in st.session_state:
             st.experimental_rerun()
     st.stop()
 
+if "comparison" not in st.session_state:
+    if not os.path.exists(f"data/{st.session_state['uuid']}.data"):
+        st.session_state["comparison"] = []
+    else:
+        with open(f"data/{st.session_state['uuid']}.data", "r") as f:
+            st.session_state["comparison"] = f.readlines()
+
 if "proposal" not in st.session_state:
     if not os.path.exists(f"data/{st.session_state['uuid']}.list"):
         st.session_state["proposal"] = []
     else:
         with open(f"data/{st.session_state['uuid']}.list", "r") as f:
             st.session_state["proposal"] = f.readlines()
-
-if f"{st.session_state['uuid']}.data" not in os.listdir("data"):
-    with open(f"data/{st.session_state['uuid']}.data", "w") as f:
-        f.write("A\tB\tuseful\trelatable\n")
 
 KEY_NEUTRAL = "不好判断"
 VOTE, SUGGEST = st.tabs(["投票", "建议"])
@@ -117,10 +128,10 @@ with VOTE:
         useful = st.radio("哪个课程更有用？", options, horizontal=True)
         relatable = st.radio("哪个课程与本专业更相关？", options, horizontal=True)
         if st.form_submit_button("确认，转到下一组"):
-            with open(f"data/{st.session_state['uuid']}.data", "a") as f:
-                f.write(
-                    f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
-                )
+            st.session_state["comparison"].append(
+                f"{course_A}\t{course_B}\t{options.index(useful)-1}\t{options.index(relatable)-1}\n"
+            )
+            update_comparison()
             st.experimental_rerun()
 
 with SUGGEST:
@@ -136,7 +147,7 @@ with SUGGEST:
         with cols[0]:
             st.write(course)
         with cols[1]:
-            if st.button("删除"):
+            if st.button("删除", key=course + "del"):
                 st.session_state["proposal"].remove(course)
                 update_proposal()
                 st.experimental_rerun()
