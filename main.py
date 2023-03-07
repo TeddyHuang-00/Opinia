@@ -11,6 +11,7 @@ ClassItem = namedtuple("ClassItem", ["id", "name"])
 
 st.set_page_config("议见 Opinia", page_icon="⚙️", initial_sidebar_state="collapsed")
 st.title("💬 议见 | Opinia")
+st.caption("[Open source under MIT license](https://github.com/TeddyHuang-00/Opinia)")
 
 
 @st.cache_data
