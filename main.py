@@ -29,8 +29,11 @@ def update_comparison():
     """
     Update the comparison of the uuid
     """
-    with open(f"data/{st.session_state['uuid']}.data", "w") as f:
-        f.writelines(st.session_state["comparison"])
+    options = st.session_state["options"]
+    useful = options.index(st.session_state["useful"]) - 1
+    relatable = options.index(st.session_state["relatable"]) - 1
+    with open(f"data/{st.session_state['uuid']}.data", "a+") as f:
+        f.write(f"{options[0]}\t{options[-1]}\t{useful}\t{relatable}\n")
 
 
 def update_proposal():
@@ -123,19 +126,23 @@ with VOTE:
     course_A, course_B = np.random.choice(
         st.session_state["classlist"], 2, replace=False
     )
+    st.session_state["options"] = [course_A, KEY_NEUTRAL, course_B]
     with st.form(f"课程比较"):
-        options: list[str] = [course_A, KEY_NEUTRAL, course_B]
-        useful = (
-            options.index(st.select_slider("哪个课程更有用？", options, value=KEY_NEUTRAL)) - 1
+        st.radio(
+            "哪个课程:red[更有用]？",
+            st.session_state["options"],
+            key="useful",
+            index=1,
+            horizontal=True,
         )
-        relatable = (
-            options.index(st.select_slider("哪个课程与本专业更相关？", options, value=KEY_NEUTRAL))
-            - 1
+        st.radio(
+            "哪个课程与本专业:red[更相关]？",
+            st.session_state["options"],
+            key="relatable",
+            index=1,
+            horizontal=True,
         )
-        if st.form_submit_button("确认，转到下一组"):
-            with open(f"data/{st.session_state['uuid']}.data", "a+") as f:
-                f.write(f"{course_A}\t{course_B}\t{useful}\t{relatable}\n")
-            # st.experimental_rerun()
+        st.form_submit_button("确认，转到下一组", on_click=update_comparison)
 
 with SUGGEST:
     with st.form("建议新课程"):
