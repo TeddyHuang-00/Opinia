@@ -25,6 +25,16 @@ def load_data(year: int = 2019):
     return data
 
 
+@st.cache_data
+def load_courses():
+    """
+    Load all available courses
+    """
+    with open("static/courses.list", "r") as f:
+        data = f.readlines()
+    return data
+
+
 def update_comparison():
     """
     Update the comparison of the uuid
@@ -106,13 +116,6 @@ if "grade" not in st.session_state:
             st.experimental_rerun()
     st.stop()
 
-if "comparison" not in st.session_state:
-    if not os.path.exists(f"data/{st.session_state['uuid']}.data"):
-        st.session_state["comparison"] = []
-    else:
-        with open(f"data/{st.session_state['uuid']}.data", "r") as f:
-            st.session_state["comparison"] = f.readlines()
-
 if "proposal" not in st.session_state:
     if not os.path.exists(f"data/{st.session_state['uuid']}.list"):
         st.session_state["proposal"] = []
@@ -145,19 +148,21 @@ with VOTE:
         st.form_submit_button("确认，转到下一组", on_click=update_comparison)
 
 with SUGGEST:
+    st.caption("除了对于现有课程的建议，我们也非常希望您能提供一些新的课程建议，使本专业的课程体系更加完善。")
     with st.form("建议新课程"):
-        suggestion = st.text_input("您认为应当加入培养方案的课程名称：")
+        suggestion = st.selectbox("您建议的课程名称（可输入关键词搜索）：", load_courses())
         if st.form_submit_button("提交"):
             if suggestion not in st.session_state["proposal"]:
                 st.session_state["proposal"].append(suggestion)
                 update_proposal()
-    st.subheader("您建议的课程")
-    for course in st.session_state["proposal"]:
-        cols = st.columns([5, 1])
-        with cols[0]:
-            st.write(course)
-        with cols[1]:
-            if st.button("删除", key=course + "del"):
-                st.session_state["proposal"].remove(course)
-                update_proposal()
-                st.experimental_rerun()
+    if len(st.session_state["proposal"]):
+        st.subheader("您已建议的课程")
+        for course in st.session_state["proposal"]:
+            cols = st.columns([5, 1])
+            with cols[0]:
+                st.write(course)
+            with cols[1]:
+                if st.button("删除", key=course + "del"):
+                    st.session_state["proposal"].remove(course)
+                    update_proposal()
+                    st.experimental_rerun()
