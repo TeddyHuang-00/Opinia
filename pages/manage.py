@@ -28,7 +28,6 @@ if "admin" not in st.session_state:
     st.stop()
 
 file_names = os.listdir("data")
-st.write(file_names)
 comp_data = [
     (f, open(os.path.join("data", f)).read()) for f in file_names if f.endswith("data")
 ]
