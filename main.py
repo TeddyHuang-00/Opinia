@@ -126,6 +126,7 @@ if "proposal" not in st.session_state:
 KEY_NEUTRAL = "不好判断"
 VOTE, SUGGEST = st.tabs(["投票", "建议"])
 with VOTE:
+    st.caption("我们将会为您随机抽取两门课程，您需要尽量:red[客观]地:red[分别评价]两门课的有用程度和与本专业相关程度。")
     course_A, course_B = np.random.choice(
         st.session_state["classlist"], 2, replace=False
     )
