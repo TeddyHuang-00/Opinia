@@ -52,7 +52,7 @@ def update_proposal():
     Update the proposal of the uuid
     """
     with open(f"data/{st.session_state['uuid']}.list", "w") as f:
-        f.write("\n".join(st.session_state["proposal"]))
+        f.writelines(st.session_state["proposal"])
 
 
 if "login" not in st.session_state:
